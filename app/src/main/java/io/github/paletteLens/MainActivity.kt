@@ -8,16 +8,15 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import io.github.paletteLens.presentation.components.CameraFragment
+import io.github.paletteLens.presentation.components.GalleryFragment
+import io.github.paletteLens.presentation.components.SelectedImageFragment
+import io.github.paletteLens.presentation.components.SelectedImageViewModel
 import io.github.paletteLens.presentation.theme.AppTheme
-import io.github.paletteLens.presentation.ui.CameraFragment
-import io.github.paletteLens.presentation.ui.GalleryFragment
-import io.github.paletteLens.presentation.ui.SelectedImageFragment
-import io.github.paletteLens.presentation.ui.SelectedImageViewModel
 
 class MainActivity : ComponentActivity() {
     private val sharedImageViewModel: SelectedImageViewModel by viewModels()

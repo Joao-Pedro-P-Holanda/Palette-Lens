@@ -1,4 +1,4 @@
-package io.github.paletteLens.presentation.ui
+package io.github.paletteLens.presentation.components
 
 import android.net.Uri
 import android.util.Log

@@ -1,8 +1,6 @@
-package io.github.paletteLens.presentation.ui
+package io.github.paletteLens.presentation.components
 
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.icu.text.SimpleDateFormat
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,17 +9,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.FileProvider
-import io.github.paletteLens.BuildConfig
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Objects
 
 @Composable
-fun CameraFragment(
+fun GalleryFragment(
     modifier: Modifier = Modifier,
     viewModel: SelectedImageViewModel,
 ) {
@@ -40,33 +35,21 @@ fun CameraFragment(
             )
         return image
     }
-    val file = context.createImageFile()
-    val uri =
-        FileProvider.getUriForFile(
-            Objects.requireNonNull(context),
-            BuildConfig.APPLICATION_ID + ".provider",
-            file,
-        )
-    val takePictureLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) {
+
+    val selectPictureLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) {
                 viewModel.setImageUri(uri)
             } else {
-                Log.e("CameraFragment", "Failed to take picture")
+                Log.e("GalleryFragment", "Failed to get image from gallery")
             }
-            Log.e("CameraFragment", "Image URI: $imageURI")
-            Log.e("CameraFragment", "URI: $uri")
         }
 
-    fun takePicture() {
-        try {
-            takePictureLauncher.launch(uri)
-        } catch (e: ActivityNotFoundException) {
-            Log.e("CameraFragment", "Activity not found", e)
-        }
+    fun selectPicture() {
+        selectPictureLauncher.launch("image/*")
     }
 
-    Button(onClick = { takePicture() }) {
-        Text("Usar foto da câmera")
+    Button(onClick = { selectPicture() }) {
+        Text("Selecionar imagem da galeria")
     }
 }
