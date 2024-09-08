@@ -12,12 +12,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.paletteLens.presentation.components.CameraFragment
 import io.github.paletteLens.presentation.components.GalleryFragment
 import io.github.paletteLens.presentation.components.SelectedImageFragment
 import io.github.paletteLens.presentation.components.SelectedImageViewModel
 import io.github.paletteLens.presentation.theme.AppTheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val sharedImageViewModel: SelectedImageViewModel by viewModels()
 
@@ -38,16 +40,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     // all image related fragments use the same ViewModel
                     CameraFragment(
-                        modifier = Modifier.fillMaxSize(),
-                        sharedImageViewModel,
+                        viewModel = sharedImageViewModel,
                     )
                     GalleryFragment(
-                        modifier = Modifier.fillMaxSize(),
-                        sharedImageViewModel,
+                        viewModel = sharedImageViewModel,
                     )
                     SelectedImageFragment(
-                        modifier = Modifier.fillMaxSize(),
-                        sharedImageViewModel,
+                        viewModel = sharedImageViewModel,
                     )
                 }
             }
