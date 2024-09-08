@@ -89,6 +89,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.text.google.fonts)
+    implementation(libs.material3)
 
     // test
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.52")
