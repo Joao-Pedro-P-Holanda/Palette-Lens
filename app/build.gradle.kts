@@ -2,9 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("com.google.gms.google-services")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -56,21 +57,25 @@ android {
 
 dependencies {
     // firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
+    implementation(libs.firebase.bom)
     implementation(libs.firebase.database.ktx)
     implementation(libs.firebase.storage.ktx)
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.ui.auth)
     implementation(libs.firebase.ui.database)
 
+    // moshi
+    implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.kotlin.codegen)
+
     // hilt
     implementation(libs.hilt.android)
-    implementation("com.google.dagger:hilt-android:2.52")
-    kapt("com.google.dagger:hilt-android-compiler:2.52")
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.hilt.android.compiler)
 
     // compose
-    implementation("io.coil-kt:coil-compose:1.4.0")
-    kapt(libs.hilt.android.compiler)
+    implementation(libs.coil.compose)
+    ksp(libs.hilt.android.compiler)
     implementation(libs.generativeai)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -87,9 +92,9 @@ dependencies {
 
     // test
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.52")
-    kaptAndroidTest("com.google.dagger:hilt-compiler:2.52")
+    kspAndroidTest("com.google.dagger:hilt-compiler:2.52")
     testImplementation("com.google.dagger:hilt-android-testing:2.52")
-    kaptTest("com.google.dagger:hilt-compiler:2.52")
+    kspTest("com.google.dagger:hilt-compiler:2.52")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -97,8 +102,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-}
-
-kapt {
-    correctErrorTypes = true
 }
