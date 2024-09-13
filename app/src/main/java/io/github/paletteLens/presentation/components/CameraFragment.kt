@@ -53,8 +53,6 @@ fun CameraFragment(
             } else {
                 Log.e("CameraFragment", "Failed to take picture")
             }
-            Log.e("CameraFragment", "Image URI: $imageURI")
-            Log.e("CameraFragment", "URI: $uri")
         }
 
     fun takePicture() {
