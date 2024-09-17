@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Palette Lens</string>
+    <string name='firebase_web_client_id'>1071803615778-j8sben77u6e4cfqvohn0nsoks2fiovc2.apps.googleusercontent.com</string>
 </resources>
