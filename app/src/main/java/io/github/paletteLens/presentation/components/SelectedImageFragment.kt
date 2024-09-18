@@ -7,8 +7,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.BasicAlertDialog
@@ -16,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,6 +36,7 @@ import io.github.paletteLens.domain.model.color.PaletteMetadata
 fun SelectedImageFragment(
     modifier: Modifier = Modifier,
     viewModel: SelectedImageViewModel,
+    goToResult: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -42,11 +45,12 @@ fun SelectedImageFragment(
     val error by viewModel.error.collectAsState()
 
     if (selectedImage?.path?.isNotEmpty() == true) {
-        Column {
+        Column(
+            modifier = modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Image(
-                modifier =
-                    modifier
-                        .padding(16.dp, 8.dp),
+                modifier = modifier.size(300.dp),
                 painter = rememberImagePainter(selectedImage),
                 contentDescription = null,
             )
@@ -55,23 +59,41 @@ fun SelectedImageFragment(
                 // TODO add logic to handle palette option on viewmodel
                 Log.e("SelectedImageFragment", "Palette Option: $it")
             })
-            Button(
-                enabled = !isProcessing,
-                onClick = {
-                    val bitmap =
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                            val source = ImageDecoder.createSource(context.contentResolver, selectedImage!!)
-                            ImageDecoder.decodeBitmap(source)
-                        } else {
-                            TODO("VERSION.SDK_INT < P")
-                        }
-                    val metadata = PaletteMetadata(kind = EnumSupportedPalettes.MATERIAL, numberOfColors = 5)
+            when {
+                isProcessing -> {
+                    CircularProgressIndicator(
+                        color =
+                            MaterialTheme.colorScheme.tertiary,
+                    )
+                }
+                else ->
+                    Button(
+                        enabled = !isProcessing,
+                        onClick = {
+                            val bitmap =
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                    val source =
+                                        ImageDecoder.createSource(
+                                            context.contentResolver,
+                                            selectedImage!!,
+                                        )
+                                    ImageDecoder.decodeBitmap(source)
+                                } else {
+                                    TODO("VERSION.SDK_INT < P")
+                                }
+                            val metadata =
+                                PaletteMetadata(
+                                    kind = EnumSupportedPalettes.MATERIAL,
+                                    numberOfColors = 5,
+                                )
 
-                    viewModel.extractPalette(metadata, bitmap)
-                },
-            ) {
-                val text = if (isProcessing) "Extraindo paleta" else "Extrair paleta de cores"
-                Text(text)
+                            viewModel.extractPalette(metadata, bitmap)
+                            goToResult()
+                        },
+                    ) {
+                        val text = if (isProcessing) "Extraindo paleta" else "Extrair paleta de cores"
+                        Text(text)
+                    }
             }
         }
 

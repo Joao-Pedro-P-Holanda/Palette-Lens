@@ -10,15 +10,26 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
@@ -27,17 +38,30 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.withCreationCallback
+import io.github.paletteLens.domain.model.UserState
 import io.github.paletteLens.presentation.components.SelectedImageViewModel
 import io.github.paletteLens.presentation.theme.AppTheme
 import io.github.paletteLens.presentation.ui.ExtractColorScreen
 import io.github.paletteLens.presentation.ui.ExtractedPalettesScreen
+import io.github.paletteLens.presentation.ui.ExtractedPalettesViewModel
 import io.github.paletteLens.presentation.ui.ExtractedResultScreen
 import io.github.paletteLens.presentation.ui.Route
 import io.github.paletteLens.presentation.ui.SignInScreen
+import io.github.paletteLens.presentation.ui.SignInViewModel
 import io.github.paletteLens.presentation.ui.SignUpScreen
+import io.github.paletteLens.presentation.ui.SignUpViewModel
+import io.github.paletteLens.service.auth.AuthService
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity :
+    ComponentActivity() {
+    @Inject
+    lateinit var authService: AuthService
+
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!hasPermissions()) {
@@ -46,7 +70,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            AppTheme {
+            AppTheme(darkTheme = false) {
                 val navController = rememberNavController()
                 val routes =
                     listOf(
@@ -54,8 +78,58 @@ class MainActivity : ComponentActivity() {
                         Route("Minhas Paletas", "extracted-palettes", Icons.Default.Palette),
                     )
                 var selectedNavItem by remember { mutableIntStateOf(0) }
+
+                var showUserMenu by remember {
+                    mutableStateOf(false)
+                }
+
+                val coroutineScope = rememberCoroutineScope()
+                val userState by authService.user.collectAsState()
+
                 Scaffold(
                     modifier = Modifier.safeDrawingPadding(),
+                    topBar = {
+                        CenterAlignedTopAppBar(
+                            title = { Text(text = "Palette Lens", color = MaterialTheme.colorScheme.onPrimaryContainer) },
+                            colors =
+                                TopAppBarColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                ),
+                            actions = {
+                                when {
+                                    userState is UserState.Loaded ->
+                                        IconButton(onClick = { showUserMenu = !showUserMenu }) {
+                                            Icon(
+                                                Icons.Default.AccountCircle,
+                                                contentDescription = "User Menu",
+                                            )
+                                            DropdownMenu(expanded = showUserMenu, onDismissRequest = { showUserMenu = false }) {
+                                                DropdownMenuItem(
+                                                    text = { Text("Sair") },
+                                                    trailingIcon = {
+                                                        Icon(
+                                                            Icons.AutoMirrored.Filled.Logout,
+                                                            contentDescription = "Logout",
+                                                        )
+                                                    },
+                                                    onClick = {
+                                                        coroutineScope.launch {
+                                                            authService.signOut()
+                                                        }
+                                                    },
+                                                )
+                                            }
+                                        }
+                                    else -> {
+                                    }
+                                }
+                            },
+                        )
+                    },
                     bottomBar = {
                         BottomNavigation(
                             backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -100,21 +174,51 @@ class MainActivity : ComponentActivity() {
                         startDestination = "extract-palette",
                         modifier = Modifier.padding(innerPadding),
                     ) {
+                        val sharedImageViewModel: SelectedImageViewModel by viewModels()
+
                         composable("extract-palette") {
-                            val sharedImageViewModel: SelectedImageViewModel by viewModels()
-                            ExtractColorScreen(sharedImageViewModel = sharedImageViewModel)
+                            ExtractColorScreen(
+                                currentUser = userState,
+                                loginRedirect = {
+                                    navController.navigate("sign-in") {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                sharedImageViewModel = sharedImageViewModel,
+                                goToResult = { navController.navigate("extract-palette-result") },
+                            )
                         }
                         composable("extract-palette-result") {
-                            ExtractedResultScreen()
+                            ExtractedResultScreen(sharedImageViewModel = sharedImageViewModel)
                         }
                         composable("extracted-palettes") {
-                            ExtractedPalettesScreen()
-                        }
-                        composable("sign-in") {
-                            SignInScreen()
+                            val extractedPalettesViewModel: ExtractedPalettesViewModel by viewModels()
+                            ExtractedPalettesScreen(extractedPalettesViewModel)
                         }
                         composable("sign-up") {
-                            SignUpScreen()
+                            val signUpViewModel by viewModels<SignUpViewModel>()
+                            SignUpScreen(viewModel = signUpViewModel, onSuccesfulSignUpRedirect = { navController.navigate("sign-in") })
+                        }
+                        composable("sign-in") {
+                            val signInViewModel: SignInViewModel by viewModels(
+                                extrasProducer = {
+                                    defaultViewModelCreationExtras.withCreationCallback<SignInViewModel.Factory> { factory ->
+                                        factory.create(
+                                            successfulLoginNavigate = {
+                                                navController.navigate("extract-palette")
+                                            },
+                                            createAccountNavigate = {
+                                                navController.navigate("sign-up")
+                                            },
+                                        )
+                                    }
+                                },
+                            )
+                            SignInScreen(viewModel = signInViewModel)
                         }
                     }
                 }
