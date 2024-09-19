@@ -197,11 +197,14 @@ class MainActivity :
                         }
                         composable("extracted-palettes") {
                             val extractedPalettesViewModel: ExtractedPalettesViewModel by viewModels()
-                            ExtractedPalettesScreen(extractedPalettesViewModel)
+                            ExtractedPalettesScreen(extractedPalettesViewModel = extractedPalettesViewModel)
                         }
                         composable("sign-up") {
                             val signUpViewModel by viewModels<SignUpViewModel>()
-                            SignUpScreen(viewModel = signUpViewModel, onSuccesfulSignUpRedirect = { navController.navigate("sign-in") })
+                            SignUpScreen(
+                                viewModel = signUpViewModel,
+                                onSuccesfulSignUpRedirect = { navController.navigate("extract-palette") },
+                            )
                         }
                         composable("sign-in") {
                             val signInViewModel: SignInViewModel by viewModels(
@@ -212,7 +215,13 @@ class MainActivity :
                                                 navController.navigate("extract-palette")
                                             },
                                             createAccountNavigate = {
-                                                navController.navigate("sign-up")
+                                                navController.navigate("sign-up") {
+                                                    popUpTo(navController.graph.findStartDestination().id) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
                                             },
                                         )
                                     }
