@@ -14,6 +14,7 @@ data class PaletteMetadataEntity
     constructor(
         @PrimaryKey val metadataId: Uuid = Uuid.random(),
         val kind: String,
+        val name: String?,
         val numberOfColors: Int,
     ) {
         companion object Mapper : DomainMapper<PaletteMetadataEntity, PaletteMetadata> {
@@ -22,6 +23,7 @@ data class PaletteMetadataEntity
                 return PaletteMetadata(
                     id = model.metadataId.toString(),
                     kind = EnumSupportedPalettes.from(model.kind),
+                    name = model.name,
                     numberOfColors = model.numberOfColors,
                 )
             }
@@ -31,6 +33,7 @@ data class PaletteMetadataEntity
                 return PaletteMetadataEntity(
                     metadataId = domainModel.id?.let { Uuid.parse(it) } ?: Uuid.random(),
                     kind = domainModel.kind.text,
+                    name = domainModel.name,
                     numberOfColors = domainModel.numberOfColors,
                 )
             }
