@@ -4,6 +4,7 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class ColorRepresentation(
+    val id: String? = null,
     val hex: String,
     val rgb: String,
     val hsl: String,

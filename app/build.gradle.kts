@@ -64,6 +64,14 @@ dependencies {
     implementation(libs.firebase.ui.auth)
     implementation(libs.firebase.ui.database)
 
+    // room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.common)
+    annotationProcessor(libs.androidx.room.compiler)
+
+    ksp(libs.room.compiler)
+
     // moshi
     implementation(libs.moshi.kotlin)
     ksp(libs.moshi.kotlin.codegen)
