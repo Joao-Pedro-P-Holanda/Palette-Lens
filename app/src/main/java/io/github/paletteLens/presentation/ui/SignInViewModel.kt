@@ -62,7 +62,9 @@ SignInViewModel
         }
 
         fun goToSignUp() {
-            createAccountNavigate()
+            viewModelScope.launch {
+                createAccountNavigate()
+            }
         }
 
         @AssistedFactory
