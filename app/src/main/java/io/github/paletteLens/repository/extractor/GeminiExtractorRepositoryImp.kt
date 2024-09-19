@@ -6,10 +6,12 @@ import com.google.ai.client.generativeai.type.Schema
 import com.google.ai.client.generativeai.type.content
 import com.google.ai.client.generativeai.type.generationConfig
 import io.github.paletteLens.BuildConfig
+import io.github.paletteLens.domain.model.UserState
 import io.github.paletteLens.domain.model.color.EnumSupportedPalettes
 import io.github.paletteLens.domain.model.color.Palette
 import io.github.paletteLens.domain.model.color.PaletteMetadata
 import io.github.paletteLens.repository.extractor.PaletteExtractorRepository
+import io.github.paletteLens.service.auth.AuthService
 import io.github.paletteLens.util.JSONConverter
 import javax.inject.Inject
 
@@ -40,7 +42,7 @@ val schema =
 
 class GeminiExtractorRepositoryImp
     @Inject
-    constructor(private val jsonConverter: JSONConverter) : PaletteExtractorRepository {
+    constructor(private val jsonConverter: JSONConverter, private val authService: AuthService) : PaletteExtractorRepository {
         private val generativeModel =
             GenerativeModel(
                 "gemini-1.5-flash",
@@ -64,8 +66,12 @@ class GeminiExtractorRepositoryImp
                     },
                 )
 
-            val responseJson = response.text ?: throw Exception("Error extracting palette from image")
+            val responseJson =
+                response.text ?: throw Exception("Error extracting palette from image")
             val result = jsonConverter.fromJson(responseJson, Palette::class.java)
+            val currentUserState =
+                authService.user.value as? UserState.Loaded ?: throw Exception("User not loaded")
+            result.userId = currentUserState.user.uid
             return result
         }
 

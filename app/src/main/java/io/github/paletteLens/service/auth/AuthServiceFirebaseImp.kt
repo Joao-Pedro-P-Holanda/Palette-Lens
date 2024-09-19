@@ -12,7 +12,6 @@ import io.github.paletteLens.domain.model.User
 import io.github.paletteLens.domain.model.UserState
 import io.github.paletteLens.exceptions.AuthenticationException
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.tasks.await
 
 class AuthServiceFirebaseImp : AuthService() {
     private val auth: FirebaseAuth = Firebase.auth
@@ -30,6 +29,7 @@ class AuthServiceFirebaseImp : AuthService() {
                     user.value =
                         UserState.Loaded(
                             User(
+                                currentUser.uid,
                                 currentUser.displayName ?: "",
                                 currentUser.email ?: "",
                                 currentUser.photoUrl.toString(),
@@ -74,7 +74,7 @@ class AuthServiceFirebaseImp : AuthService() {
         password: String,
     ) {
         try {
-            auth.createUserWithEmailAndPassword(email, password).await()
+            auth.createUserWithEmailAndPassword(email, password)
         } catch (e: FirebaseAuthWeakPasswordException) {
             throw AuthenticationException.WeakPasswordException(
                 e.localizedMessage ?: "Senha Fraca",
