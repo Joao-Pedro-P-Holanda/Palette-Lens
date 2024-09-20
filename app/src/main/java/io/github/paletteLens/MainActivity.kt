@@ -1,10 +1,13 @@
 package io.github.paletteLens
 
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.BottomNavigation
@@ -51,7 +54,9 @@ import io.github.paletteLens.presentation.ui.SignInScreen
 import io.github.paletteLens.presentation.ui.SignInViewModel
 import io.github.paletteLens.presentation.ui.SignUpScreen
 import io.github.paletteLens.presentation.ui.SignUpViewModel
+import io.github.paletteLens.service.ConnectivityBroadcastReceiver
 import io.github.paletteLens.service.auth.AuthService
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -60,10 +65,17 @@ class MainActivity :
     ComponentActivity() {
     @Inject
     lateinit var authService: AuthService
+    private val connectivityState = MutableStateFlow<Boolean?>(null)
+    private val connectivityBroadcastReceiver = ConnectivityBroadcastReceiver(connectivityState)
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        registerReceiver(
+            connectivityBroadcastReceiver,
+            IntentFilter("android.net.wifi.WIFI_STATE_CHANGED"),
+        )
         if (!hasPermissions()) {
             requestPermissions(PERMISSIONS, 0)
         }
@@ -71,6 +83,7 @@ class MainActivity :
 
         setContent {
             AppTheme(darkTheme = false) {
+                val connectivityStateValue by connectivityState.collectAsState()
                 val navController = rememberNavController()
                 val routes =
                     listOf(
@@ -178,6 +191,7 @@ class MainActivity :
 
                         composable("extract-palette") {
                             ExtractColorScreen(
+                                connectivityStatus = connectivityStateValue,
                                 currentUser = userState,
                                 loginRedirect = {
                                     navController.navigate("sign-in") {
