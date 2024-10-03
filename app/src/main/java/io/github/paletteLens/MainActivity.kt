@@ -10,8 +10,6 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
@@ -24,6 +22,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarColors
@@ -144,23 +145,29 @@ class MainActivity :
                         )
                     },
                     bottomBar = {
-                        BottomNavigation(
-                            backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                        NavigationBar(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         ) {
                             routes.forEachIndexed { num, route ->
-                                BottomNavigationItem(
+                                NavigationBarItem(
                                     icon = {
                                         Icon(
                                             route.icon,
                                             contentDescription = route.name,
-                                            tint = MaterialTheme.colorScheme.tertiary,
                                         )
                                     },
                                     label = { Text(route.name) },
                                     selected = selectedNavItem == num,
-                                    // TODO: Fix selected and unselected colors not being applied
-                                    selectedContentColor = MaterialTheme.colorScheme.primary,
-                                    unselectedContentColor = MaterialTheme.colorScheme.tertiary,
+                                    colors =
+                                        NavigationBarItemColors(
+                                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                                            selectedIndicatorColor = MaterialTheme.colorScheme.surface,
+                                            unselectedIconColor = MaterialTheme.colorScheme.tertiary,
+                                            unselectedTextColor = MaterialTheme.colorScheme.tertiary,
+                                            disabledIconColor = MaterialTheme.colorScheme.inverseSurface,
+                                            disabledTextColor = MaterialTheme.colorScheme.inverseSurface,
+                                        ),
                                     onClick = {
                                         selectedNavItem = num
                                         navController.navigate(route.content) {
