@@ -18,3 +18,12 @@ firebase.json
 google-services.json
 *.rules*
 *.log
+
+# apk files
+app/release/*
+*.apk
+*.jks
+*.keystore
+
+# documentation files
+/site
